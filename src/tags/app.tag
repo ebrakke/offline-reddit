@@ -36,12 +36,14 @@
 <app-post>
   <p if={!post}>Loading...</p>
   <div if={post} class="row">
-    <div class="col-12">
+    <div class="col-sm-12">
       <h3>{post.title}</h3>
       <p>{post.author}</p>
+      <p>{post.selftext}</p>
+      <button class="btn btn-info" onclick={hide_children}>{hide_all_children ? 'Show Children' : 'Hide children'}</button>
     </div>
-    <div class="col-12">
-      <app-comments comments={comments}/>
+    <div class="col-sm-12">
+      <app-comments comments={comments} post_fullname={post.name} hide_all_children={hide_all_children}/>
     </div>
   </div>
 
@@ -50,6 +52,9 @@
     this.on('route', (subreddit, postId) => {
       api.getPostComments(subreddit, postId)
     })
+    this.hide_all_children = false
+
+    this.hide_children = () => {this.hide_all_children = !this.hide_all_children }
 
     api.on('getPostComments', ({post, comments}) => {
       this.post = post;
@@ -61,16 +66,19 @@
 
 <app-comment>
   <li if={!(comment.kind === 'more')} class="container-fluid">
-    <p>{comment.data.author} - {comment.data.ups}:{comment.data.downs}</p>
-    <p onclick={toggle}>{comment.data.body}</p>
-    <ul if={comment.data.replies && show_replies} class="list-unstyled">
-      <app-comment each={reply in comment.data.replies.data.children} comment={reply}/>
-    </ul>
+    <p>{comment.data.author} - <span class="text-success">{comment.data.score}</span></p>
+    <p onclick={toggle}><raw content={comment.data.body_html}/></p>
+    <hr/ >
+    <app-comments hide_all_children={opts.hide_all_children} show={show_replies} if={comment.data.replies} comments={comment.data.replies.data.children} post_fullname={opts.post_fullname} nest={opts.nest + 1}/>
   </li>
 
-  <li if={comment.kind === 'more'} class="container-fluid">
+  <li if={comment.kind === 'more' && !loaded_more} class="container-fluid">
     <a onclick={load_more}>Load More ({comment.data.count})</a>
-    <p>{comment.data.id}</p>
+    <hr />
+  </li>
+
+  <li show={loaded_more} class="container-fluid">
+    <app-comments comments={loaded_comments} hide_all_children={opts.hide_all_children} post_fullname={opts.post_fullname} nest={opts.nest + 1}/>
   </li>
 
   <style>
@@ -80,22 +88,29 @@
   </style>
   
   <script>
+    const api = require('../api')
     this.comment = opts.comment
-    this.show_replies = true
+    this.show_replies = !opts.hide_all_children
     
     this.toggle = function() {
       this.show_replies = !this.show_replies
     }
 
     this.load_more = function() {
-
+      api.getMoreComments(this.opts.post_fullname, this.comment.data.name, this.comment.data.children)
     }
+
+    api.on(`getMoreComments-${this.comment.data.name}`, ({moreId, comments}) => {
+      this.loaded_more = true
+      this.loaded_comments = comments
+      this.update();
+    } )
   </script>
 </app-comment>
 
 <app-comments>
   <ul class="list-unstyled">
-    <app-comment each={comment in opts.comments} comment={comment}/>
+    <app-comment post_fullname={parent.opts.post_fullname} each={comment in opts.comments} comment={comment} hide_all_children={opts.hide_all_children}/>
   </ul>
 
   <script>
@@ -138,3 +153,12 @@
     }
   </style>
 </app-global-nav>
+
+<raw>
+  <span></span>
+
+  <script>
+    this.root.innerHTML = $('<div />', {html: opts.content}).text()
+    this.on('update', () => { this.root.innerHTML = $('<div />', {html: opts.content}).text() })
+  </script>
+</raw>
