@@ -92,7 +92,11 @@
     this.comment = opts.comment
     this.show_replies = !opts.hide_all_children
     
-    this.toggle = function() {
+    this.toggle = function(e) {
+      // Don't toggle if they're clicking on a link in the page
+      if (e.target.tagName == 'A') {
+        return
+      }
       this.show_replies = !this.show_replies
     }
 

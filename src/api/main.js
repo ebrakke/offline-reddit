@@ -1,8 +1,8 @@
-const restify = require('restify');
+const express = require('express');
 const request = require('request');
-const corsMiddleware = require('restify-cors-middleware');
 const uuid4 = require('uuid/v4');
-const config = require('./config.json');
+const cors = require('cors');
+const fallback = require('express-history-api-fallback');
 
 const authenticate = (req, res, next) => {
   const authEndpoint = 'https://www.reddit.com/api/v1/access_token';
@@ -19,16 +19,15 @@ const authenticate = (req, res, next) => {
     .auth(process.env.CLIENT_ID, process.env.CLIENT_SECRET);
 };
 
-const cors = corsMiddleware({
-  origins: ['http://localhost:5000']
-});
+const app = express();
+app.use(cors());
+app.use(express.static(__dirname + '/public'));
+app.get('/api/auth', authenticate);
+app.use('/', express.static(__dirname + '/public'));
+app.use(fallback('index.html', { root: `${__dirname}/public` }));
 
-const server = restify.createServer();
-server.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'X-Requested-With');
-  return next();
-});
-server.get('/auth', authenticate);
 const port = process.env.PORT || 3000;
-server.listen(port, '0.0.0.0');
+const host = process.env.HOST || 'localhost';
+app.listen(port, host, () => {
+  console.log('server listening at port ' + port);
+});

@@ -4,20 +4,27 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "riot": "riot --config riot.config",
-    "build": "cp index.html dist && cp src/sw.js dist && browserify src/index.js > dist/bundle.js",
-    "start": "cp index.html dist && cp src/sw.js dist && serve dist -s | watchify src/index.js -o dist/bundle.js",
-    "start-api": "cd api && node main.js",
-    "start-prod": "npm run build && serve dist -s"
+    "copy": "cp src/frontend/index.html src/api/public/ && cp src/frontend/sw.js src/api/public/",
+    "start": "npm run build && node src/api/main.js",
+    "dev": "npm run copy && watchify src/frontend/index.js -o src/api/public/js/bundle.js | nodemon src/api/main.js",
+    "build": "npm run copy && browserify src/frontend/index.js > src/api/public/js/bundle.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "babel-core": "^6.26.0",
     "browserify": "^14.5.0",
+    "cors": "^2.8.4",
+    "express": "^4.16.2",
+    "express-history-api-fallback": "^2.2.1",
+    "nodemon": "^1.14.6",
+    "request": "^2.83.0",
+    "restify": "^6.3.4",
+    "restify-cors-middleware": "^1.1.0",
     "riot": "^3.8.0",
     "riot-route": "^3.1.2",
-    "riotify": "^2.0.0"
+    "riotify": "^2.0.0",
+    "uuid": "^3.1.0"
   },
   "devDependencies": {
     "babel-preset-es2015-riot": "^1.1.0",

@@ -1,5 +1,5 @@
 const riot = require('riot');
-const AUTH_URL = 'http://localhost:3000/auth';
+const AUTH_URL = 'http://localhost:3000/api/auth';
 
 const auth = riot.observable();
 
