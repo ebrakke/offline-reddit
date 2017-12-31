@@ -30,5 +30,5 @@ server.use((req, res, next) => {
   return next();
 });
 server.get('/auth', authenticate);
-
-server.listen(3000);
+const port = process.env.PORT || 3000;
+server.listen(port, '0.0.0.0');
