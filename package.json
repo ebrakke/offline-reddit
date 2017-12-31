@@ -6,7 +6,9 @@
   "scripts": {
     "riot": "riot --config riot.config",
     "build": "cp index.html dist && cp src/sw.js dist && browserify src/index.js > dist/bundle.js",
-    "start": "cp index.html dist && cp src/sw.js dist && serve dist -s | watchify src/index.js -o dist/bundle.js"
+    "start": "cp index.html dist && cp src/sw.js dist && serve dist -s | watchify src/index.js -o dist/bundle.js",
+    "start-api": "cd api && node main.js",
+    "start-prod": "npm run build && serve dist -s"
   },
   "author": "",
   "license": "ISC",
